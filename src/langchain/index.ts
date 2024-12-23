@@ -13,17 +13,18 @@ export class CreateBet extends Tool {
   The bet creator can create a new bet/wager/prediction market using the creator wallet address, seed, pool amount, minimum amount, and maximum amount
   This will run the createBet tool with the specified parameters
    Inputs (input is a JSON string):
-  userId: number, eg 1158700339 (required)
-  creatorAddress: string, eg "91Q1XdVxobuAjX8vcKj4PruC7KZsaEL3cU5cH61WyDmw" (required)
-  poolAmount: number, eg 4 (required)
-  min: number, eg 0.5 (required)
-  max: number, eg 2 (required)
-  seed: number, eg 11234 (required)
+      userId: number, eg 1158700339 (required)
+      creatorAddress: string, eg "91Q1XdVxobuAjX8vcKj4PruC7KZsaEL3cU5cH61WyDmw" (required)
+      poolAmount: number, eg 4 (required)
+      min: number, eg 0.5 (required)
+      max: number, eg 2 (required)
+      seed: number, eg 11234 (required)
+   
   `
   constructor(private solanaKit: SolanaAgentKit) {
     super()
   }
-  protected async _call(input: string): Promise<string> {
+  protected async _call(input: any): Promise<string> {
     // protected async _call(input: string, x?: string): Promise<string> {
     const inp = JSON.parse(input)
     try {
