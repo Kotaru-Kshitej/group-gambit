@@ -21,3 +21,5 @@ export * from "./openbook_create_market";
 
 // custom tools
 export * from "./create_bet"
+export * from "./join_bet"
+export * from "./resolve_bet"

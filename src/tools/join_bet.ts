@@ -7,7 +7,7 @@ const idl_object = JSON.parse(JSON.stringify(idl))
 import dotenv from "dotenv"
 import { BN } from "bn.js"
 dotenv.config();
-export async function create_bet(id: number, creatorAddress: string, poolAmount: number, min: number, max: number, seeds: number) {
+export async function join_bet(id: number, creatorAddress: string, seeds: number) {
     const rpcUrl = process.env.RPC_URL || ""
     const privateKey = process.env.SOLANA_PRIVATE_KEY || ""
     const programId = new PublicKey(idl.address)
@@ -17,7 +17,6 @@ export async function create_bet(id: number, creatorAddress: string, poolAmount:
     const provider = new AnchorProvider(connection, anchorWallet, { commitment: "confirmed" })
     const program = new Program<VaultTelegram>(idl_object, provider)
     const creator = new PublicKey(creatorAddress)
-
     const seed = new BN(seeds)
     const [betState] =
         PublicKey.findProgramAddressSync(
@@ -32,15 +31,13 @@ export async function create_bet(id: number, creatorAddress: string, poolAmount:
         [Buffer.from("vault"), betState.toBuffer()],
         program.programId
     );
-    const ix = await program.methods.create(
-        seed,
-        new BN(4),
-        new BN(1000000000),
-        new BN(1000000000))
+    const ix = await program.methods
+        .join(seed)
         .accountsPartial({
-            creator,
-            vaultPool,
-            betState
+            maker: creator,
+            user: creator, //CHANGE THIS CREATE A ID TO ADDRESS FUNCTION
+            betState: betState,
+            vaultPool: vaultPool,
         })
         .instruction()
     const instructions = []
@@ -52,8 +49,8 @@ export async function create_bet(id: number, creatorAddress: string, poolAmount:
         recentBlockhash: blockhash,
     }).compileToV0Message()
     const transaction = new VersionedTransaction(message)
-    // const sig = await connection
     try {
+
         const response = await fetch(`https://staging.crossmint.com/api/v1-alpha2/wallets/userId:${id}:solana-mpc-wallet/transactions`, {
             method: "POST",
             headers: {
@@ -62,7 +59,6 @@ export async function create_bet(id: number, creatorAddress: string, poolAmount:
             },
             body: JSON.stringify({
                 params: {
-                    // Base58 encoded transaction returned from previous step
                     transaction: base58.encode(transaction.serialize())
                 }
             })

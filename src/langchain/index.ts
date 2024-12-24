@@ -29,14 +29,82 @@ export class CreateBet extends Tool {
     const inp = JSON.parse(input)
     try {
       const result = await this.solanaKit.createBet(inp.userId, inp.creatorAddress, inp.poolAmount, inp.min, inp.max, inp.seed)
-      console.log("bet created", result)
-      return JSON.stringify({
-        status: "success",
-        message: "Created a new bet with seed: ".concat(inp.seed.toString()),
-        data: result,
-      });
+      if (!result.error) {
+        console.log("bet created!", result)
+      } else {
+        console.log("error creating bet", result.data)
+      }
+      return JSON.stringify(result)
     }
     catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "UNKNOWN_ERROR",
+      });
+    }
+  }
+}
+
+export class JoinBet extends Tool {
+  name = "solana_join_bet";
+  description = `Join an existing bet.
+  The participant can join an already created bet/wager/prediction market using the userId, creator wallet address, and the seed of the bet. 
+  This will run the joinBet tool with the specified parameters. 
+
+  Inputs (input is a JSON string):
+    userId: number, eg 1158700339 (required)
+    creatorAddress: string, eg "91Q1XdVxobuAjX8vcKj4PruC7KZsaEL3cU5cH61WyDmw" (required) - The wallet address of the bet creator.
+    seed: number, eg 11234 (required) - The seed value used to uniquely identify the bet.
+`;
+  constructor(private solanaKit: SolanaAgentKit) {
+    super()
+  }
+  protected async _call(input: string) {
+    const inp = JSON.parse(input)
+    try {
+      const result = await this.solanaKit.joinBet(inp.userId, inp.creatorAddress, inp.seed)
+      if (!result.error) {
+        console.log("bet joined!", result)
+      } else {
+        console.log("error joining bet", result.data)
+      }
+      return JSON.stringify(result)
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "UNKNOWN_ERROR",
+      });
+    }
+  }
+}
+export class ResolveBet extends Tool {
+  name = "solana_resolve_bet";
+  description = `Resolve an existing bet.
+    The creator can resolve an active bet/wager/prediction market to determine the outcome using the bet ID, creator wallet address, seed of the bet, and the winner of the bet. 
+This will run the resolveBet tool with the specified parameters.
+
+Inputs (input is a JSON string):
+   id: number, eg 1158700339 (required) - The unique identifier of the bet to resolve.
+   creatorAddress: string, eg "91Q1XdVxobuAjX8vcKj4PruC7KZsaEL3cU5cH61WyDmw" (required) - The wallet address of the bet creator.
+   seed: number, eg 11234 (required) - The seed value used to uniquely identify the bet.
+   winner: string, eg "91Q1XdVxobuAjX8vcKj4PruC7KZsaEL3cU5cH61WyDmw" (required) - The winner of the bet. 
+`;
+  constructor(private solanaKit: SolanaAgentKit) {
+    super()
+  }
+  protected async _call(input: string) {
+    const inp = JSON.parse(input)
+    try {
+      const result = await this.solanaKit.resolveBet(inp.userId, inp.creatorAddress, inp.seed, inp.winner)
+      if (!result.error) {
+        console.log("bet joined!", result)
+      } else {
+        console.log("error joining bet", result.data)
+      }
+      return JSON.stringify(result)
+    } catch (error: any) {
       return JSON.stringify({
         status: "error",
         message: error.message,
@@ -988,12 +1056,12 @@ export class SolanaOpenbookCreateMarket extends Tool {
 
 export function createSolanaTools(solanaKit: SolanaAgentKit) {
   return [
-    new CreateUserWallet(solanaKit),
     new CreateBet(solanaKit),
+    new JoinBet(solanaKit),
+    new ResolveBet(solanaKit),
+    new CreateUserWallet(solanaKit),
     new SolanaBalanceTool(solanaKit),
     new SolanaTransferTool(solanaKit),
-    new SolanaDeployTokenTool(solanaKit),
-    new SolanaDeployCollectionTool(solanaKit),
     // new SolanaMintNFTTool(solanaKit),
     // new SolanaTradeTool(solanaKit),
     // new SolanaRequestFundsTool(solanaKit),

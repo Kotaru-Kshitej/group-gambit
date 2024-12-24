@@ -23,10 +23,12 @@ import {
   getTokenDataByTicker,
   stakeWithJup,
   sendCompressedAirdrop,
-  create_bet
+  create_bet,
+  resolve_bet
 } from "../tools";
 import { CollectionOptions, PumpFunTokenOptions } from "../types";
 import { BN } from "@coral-xyz/anchor";
+import { join_bet } from "../tools/join_bet";
 
 /**
  * Main class for interacting with Solana blockchain
@@ -53,10 +55,30 @@ export class SolanaAgentKit {
     this.wallet_address = this.wallet.publicKey;
     this.openai_api_key = openai_api_key;
   }
+  async getAddressFromUserId(userId: number) {
+    const response = await fetch(`https://staging.crossmint.com/api/v1-alpha2/wallets/userId:${userId}:solana-mpc-wallet`, {
+      method: "GET",
+      headers: {
+        "X-API-KEY": process.env.CROSSMINT_API_KEY || "",
+        "Content-Type": "application/json"
+      }
+    })
+    const data = await response.json()
+    return data
+  }
+
+
   // My custom tools
   async createBet(id: number, creatorAddress: string, poolAmount: number, min: number, max: number, seed: number) {
     return create_bet(id, creatorAddress, poolAmount, min, max, seed)
   }
+  async joinBet(id: number, creatorAddress: string, seeds: number) {
+    return join_bet(id, creatorAddress, seeds)
+  }
+  async resolveBet(id: number, creatorAddress: string, seeds: number, winner: string) {
+    return resolve_bet(id, creatorAddress, seeds, winner)
+  }
+
   async createUserWallet(id: number) {
     const apiKey = process.env.CROSSMINT_API_KEY || ""
     const response = await fetch("https://staging.crossmint.com/api/v1-alpha2/wallets", {
